@@ -31,26 +31,40 @@ class Experiment
     c = @command % @params
     # puts "#{c}\n--------------".black
 
-    Open3.popen2e(c) {|i,oe,waiter|
-      pid = waiter.pid
-      oe.each_line {|l|
-        pout += l
-        puts l.strip
+    begin
+      Open3.popen2e(c) {|i,oe,waiter|
+        pid = waiter.pid
+        oe.each_line {|l|
+          pout += l
+          puts l.strip
+        }
+        exit_status = waiter.value
+        if not exit_status.success?
+          puts "Error!"
+          error = true
+          raise
+        end
       }
-      exit_status = waiter.value
-      if not exit_status.success? then puts "Error!"; return end
-    }
-    results = @parser[pout]
-    if not results or (results.size == 0) then puts "Error! No results."; return end
+      results = @parser[pout]
+      if not results or (results.size == 0)
+        puts "Error! No results."
+        error = true
+        raise
+      end
 
-    # box up data into an array (so we can easily handle multiple data records if needed)
-    results = [results] if results.is_a? Hash
+      # box up data into an array (so we can easily handle multiple data records if needed)
+      results = [results] if results.is_a? Hash
 
-    results.each {|d|
-      new_record = params.merge(d)
-      puts new_record # print
-      insert(@dbpath, @dbtable, new_record) unless @opt[:noinsert]
-    }
+      results.each {|d|
+        new_record = params.merge(d)
+        puts new_record # print
+        insert(@dbpath, @dbtable, new_record) unless @opt[:noinsert]
+      }
+    ensure
+      # insert job record no matter what, so we can see errors
+      new_job_record = params.merge({:error => error.to_s, :results => results.to_s})
+      insert(@dbpath, :jobs, new_job_record)
+    end
     return true # success
   end
 
