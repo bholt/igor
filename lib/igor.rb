@@ -298,6 +298,20 @@ module Igor
     puts Hirb::Helpers::AutoTable.render(d.all) # (doesn't do automatic paging...)
   end
   
+  def _dsl_dataset(starting_dataset, &blk)
+    if blk
+      # same as DSL eval: if they want a handle, give it to 'em
+      if blk.arity == 1
+        d = yield starting_dataset
+      else # otherwise just evaluate directly on the dataset (implicit 'self')
+        d = starting_dataset.instance_eval(&blk)
+      end
+    else
+      d = starting_dataset
+    end
+    return d
+  end
+  
   # Get new handle for a dataset from the results database.
   # This handle is actually a `Sequel::Model`, which means it has lots of useful little things
   # you can do with it.
@@ -309,19 +323,19 @@ module Igor
   # > results[12].nnode
   # 
   def results(&blk)
-    if blk
-      # same as DSL eval: if they want a handle, give it to 'em
-      if blk.arity == 1
-        d = yield @db[@dbtable]
-      else # otherwise just evaluate directly on the dataset (implicit 'self')
-        d = @db[@dbtable].instance_eval(&blk)
-      end
-    else
-      d = @db[@dbtable]
-    end
+    d = _dsl_dataset(@db[@dbtable])
     return Class.new(Sequel::Model) { set_dataset d }
   end
-
+  
+  def jobs(&blk)
+    d = _dsl_dataset(@db[:jobs], &blk)
+    return Class.new(Sequel::Model) { set_dataset d }
+  end
+  
+  def recent_jobs
+    return jobs{ select(:error, :nnode, :ppn, :run_at, :outfile).order(:id) }
+  end
+  
   # doesn't currently work ('create_or_replace_view' unsupported for SQLite, or Sequel bug?)
   # def results_filter(dataset=nil,&blk)
   #   if blk
