@@ -200,6 +200,7 @@ module Igor
     
     begin
       sleep 0.5 # give squeue time to get itself together
+      j.update
       job_with_step = %x{ squeue --jobs=#{j.jobid} --steps --format %i }.split[1]
     end while j.state == :JOB_RUNNING && (job_with_step == nil)
     
@@ -208,16 +209,38 @@ module Igor
       return
     end
     
-    PTY.spawn "sattach #{job_with_step}" do |r,w,pid|
-      Signal.trap("INT") { puts "exiting..."; Process.kill("INT",pid) }
+    begin
       begin
-        r.sync
-        r.each_line {|l| puts l.strip }
-      rescue Errno::EIO => e
-        # *correct* behavior is to emit an I/O error here, so ignore
-      ensure
-        ::Process.wait pid
-        Signal.trap("INT", "DEFAULT") # reset signal
+        j.update
+        job_with_step = %x{ squeue --jobs=#{j.jobid} --steps --format %i }.split[1]
+      end while j.state == :JOB_RUNNING && (job_with_step == nil)
+      
+      attach_again = false
+      sleep 0.5
+      PTY.spawn "sattach #{job_with_step}" do |r,w,pid|
+        Signal.trap("INT") { puts "exiting..."; Process.kill("INT",pid) }
+        begin
+          r.sync
+          r.each_line do |l|
+            ll = l.strip
+            raise 'No Tasks' if ll =~ /no tasks running/
+            raise 'Invalid Jobid' if ll =~ /Invalid job id specified/
+            puts ll
+          end
+        rescue Errno::EIO => e
+          # *correct* behavior is to emit an I/O error here, so ignore
+        ensure
+          ::Process.wait pid
+          # puts "$?.exitstatus = #{$?.exitstatus}"
+          Signal.trap("INT", "DEFAULT") # reset signal
+        end
+      end
+    rescue Exception => e
+      case e.message
+      when /No Tasks/
+        retry
+      when /Invalid Jobid/
+        retry
       end
     end
   end
