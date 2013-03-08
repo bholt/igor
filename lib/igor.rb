@@ -185,6 +185,8 @@ module Igor
   def attach(job_alias)
     
     j = @jobs[@job_aliases[job_alias]]
+    return if not j
+    
     j.update
     
     if j.state == :JOB_PENDING
@@ -323,7 +325,7 @@ module Igor
   # > results[12].nnode
   # 
   def results(&blk)
-    d = _dsl_dataset(@db[@dbtable])
+    d = _dsl_dataset(@db[@dbtable], &blk)
     return Class.new(Sequel::Model) { set_dataset d }
   end
   
@@ -333,7 +335,7 @@ module Igor
   end
   
   def recent_jobs
-    return jobs{ select(:error, :nnode, :ppn, :run_at, :outfile).order(:id) }
+    return jobs{ select(:id, :error, :nnode, :ppn, :run_at, :outfile).order(:id) }
   end
   
   # doesn't currently work ('create_or_replace_view' unsupported for SQLite, or Sequel bug?)
