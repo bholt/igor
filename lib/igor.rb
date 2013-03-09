@@ -182,7 +182,7 @@ module Igor
   end
   alias :v :view
   
-  def attach(job_alias)
+  def attach(job_alias = @job_aliases.keys.last)
     
     j = @jobs[@job_aliases[job_alias]]
     return if not j
@@ -249,12 +249,13 @@ module Igor
   alias :a :attach
   alias :at :attach
 
-  def status    
+  def status
     @job_aliases = {}
     update_jobs
     @jobs.each_with_index {|(id,job),index|
       puts "[#{'%2d'%index}]".cyan + " " + job.to_s
       @job_aliases[index] = id  # so user can refer to an experiment by a shorter number (or alias)
+      
       if @experiments.include? id  # if this job is one of our experiments...
         # print interesting parameters
         p = @experiments[id].params.select{|k,v|
