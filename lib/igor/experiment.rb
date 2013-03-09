@@ -31,6 +31,10 @@ class Experiment
     c = @command % @params
     # puts "#{c}\n--------------".black
 
+    # insert job record no matter what, so we can see errors
+    new_job_record = params.merge({:error => 'true', :results => ''})
+    job_key = insert(:jobs, new_job_record)
+
     begin
       Open3.popen2e(c) {|i,oe,waiter|
         pid = waiter.pid
@@ -58,12 +62,10 @@ class Experiment
       results.each {|d|
         new_record = params.merge(d)
         puts new_record # print
-        insert(@dbpath, @dbtable, new_record) unless @opt[:noinsert]
+        insert(@dbtable, new_record) unless @opt[:noinsert]
       }
     ensure
-      # insert job record no matter what, so we can see errors
-      new_job_record = params.merge({:error => error.to_s, :results => results.to_s})
-      insert(@dbpath, :jobs, new_job_record)
+      update(:jobs, job_key, {:error => error.to_s, :results => results.to_s})
     end
     return true # success
   end

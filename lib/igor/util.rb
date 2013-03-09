@@ -54,13 +54,18 @@ end
 
 module Helpers
   module Sqlite
-    def insert(dbpath, dbtable, record)
-      @db ||= Sequel.sqlite(dbpath)
+    def insert(dbtable, record)
+      @db ||= Sequel.sqlite(@dbpath)
      
       # ensure there are fields to hold this record
       tbl = prepare_table(dbtable, record, @db)
 
       tbl.insert(record)
+    end
+    
+    def update(dbtable, id, changes)
+      raise "@db not initialized, what could you possibly be updating?" if not @db
+      @db[dbtable].where(:id => id).update(changes)
     end
     
     def run_already?(params)
