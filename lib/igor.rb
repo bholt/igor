@@ -336,7 +336,7 @@ module Igor
   end
   
   def recent_jobs
-    return jobs{ select(:id, :error, :nnode, :ppn, :run_at, :outfile).order(:id) }
+    return jobs{ select(:id, :error, :nnode, :ppn, :run_at, :outfile).reverse_order(:id) }
   end
   
   # doesn't currently work ('create_or_replace_view' unsupported for SQLite, or Sequel bug?)
