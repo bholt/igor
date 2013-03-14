@@ -302,17 +302,17 @@ module Igor
     puts Hirb::Helpers::AutoTable.render(d.all) # (doesn't do automatic paging...)
   end
   
-  def _dsl_dataset(starting_dataset, &blk)
+  def _dsl_dataset(starting_dataset, *sql_query_args, &blk)
+    d = starting_dataset
     if blk
       # same as DSL eval: if they want a handle, give it to 'em
       if blk.arity == 1
-        d = yield starting_dataset
+        d = yield d
       else # otherwise just evaluate directly on the dataset (implicit 'self')
-        d = starting_dataset.instance_eval(&blk)
+        d = d.instance_eval(&blk)
       end
-    else
-      d = starting_dataset
     end
+    d = d.with_sql(*sql_query_args) if sql_query_args.size > 0
     return d
   end
   
@@ -326,16 +326,20 @@ module Igor
   # get field value from result with given id:
   # > results[12].nnode
   # 
-  def results(&blk)
-    d = _dsl_dataset(@db[@dbtable], &blk)
+  def results(*sql_query_args, &blk)
+    d = _dsl_dataset(@db[@dbtable], *sql_query_args, &blk)
     return Class.new(Sequel::Model) { set_dataset d }
   end
   
-  def jobs(&blk)
-    d = _dsl_dataset(@db[:jobs], &blk)
+  # Query separate "jobs" table that has all experiments run, whether they succeeded or not.
+  def jobs(*sql_query_args, &blk)
+    d = _dsl_dataset(@db[:jobs], *sql_query_args, &blk)
     return Class.new(Sequel::Model) { set_dataset d }
   end
   
+  # Displays fields of jobs that are probably relevant for determining the status of recent jobs.
+  # In particular, displays "error" field and still contains "outfile", and is ordered
+  # starting with the most recent jobs first.
   def recent_jobs
     return jobs{ select(:id, :error, :nnode, :ppn, :run_at, :outfile).reverse_order(:id) }
   end
