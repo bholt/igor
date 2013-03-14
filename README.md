@@ -24,6 +24,7 @@ The file `examples/sample.rb` contains a toy run script that demonstrates a numb
 For now, just look at [examples/sample.rb](examples/igor.rb).
 
 ### Querying database
+
 Show the top 5 BFS results of scale 25:
 
 ```ruby
@@ -33,3 +34,7 @@ results{ where(:scale=>25).select(:id,:mpibfs,:nnode,:ppn,:max_teps).reverse_ord
 Breaking it down: `results` takes a block which can be run as if by the `Sequel::Dataset` object, allowing the clean DSL-like syntax (`select` has `@db[@dbtable]` as its implicit `self`). Then we select some fields, sort the results by the "max_teps" field, and filter just ones where `:scale` is 25. More documentation on the chaining query methods can be found [here](http://sequel.rubyforge.org/rdoc/files/doc/querying_rdoc.html).
 
 Because of the way Sequel's `Model`s work, once they're created, they have a fixed format. This block syntax lets us get around it by setting up the query before the Model object is created. Then all that is called on the model is `all` which displays the results as a nicely formatted table.
+
+#### Additional reading
+General useful documentation on the Ruby Sequel DSL [sequel/sql.rdoc](http://sequel.rubyforge.org/rdoc/files/doc/sql_rdoc.html).
+
