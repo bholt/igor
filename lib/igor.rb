@@ -106,10 +106,11 @@ module Igor
   end
   alias :cmd :command
   
-  def database(dbpath, dbtable)
-    @dbpath = File.expand_path(dbpath)
-    @dbtable = dbtable
-    @db = Sequel.sqlite(@dbpath)
+  def database(dbpath=nil, dbtable=nil)
+    @dbpath = File.expand_path(dbpath) if dbpath
+    @dbtable = dbtable if dbtable
+    @db = Sequel.sqlite(@dbpath) if dbpath
+    return @db
   end
   alias :db :database
 
