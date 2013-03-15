@@ -5,14 +5,14 @@ class Experiment
   include Helpers::Sqlite
   attr_reader :command, :params, :jobid, :serialized_file
 
-  def initialize(params, exps, serialized_file)
-    @command = exps.command
+  def initialize(params, igor, serialized_file)
+    @command = igor.command
     @params = params
     @jobid = nil
-    @parser_str = exps.parser.to_source
-    @dbpath = exps.dbpath
-    @dbtable = exps.dbtable
-    @opt = exps.opt
+    @parser_str = igor.parser.to_source
+    @dbpath = igor.dbpath
+    @dbtable = igor.dbtable
+    @opt = igor.opt
     @serialized_file = serialized_file
   end
 
