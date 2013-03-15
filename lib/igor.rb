@@ -341,8 +341,8 @@ module Igor
   # Displays fields of jobs that are probably relevant for determining the status of recent jobs.
   # In particular, displays "error" field and still contains "outfile", and is ordered
   # starting with the most recent jobs first.
-  def recent_jobs
-    return jobs{ select(:id, :error, :nnode, :ppn, :run_at, :outfile).reverse_order(:id) }
+  def recent_jobs(&blk)
+    return jobs{|d| _dsl_dataset(d.select(:id, :error, :nnode, :ppn, :started_at, :outfile).reverse_order(:id), &blk) }
   end
   
   # Query the database using SQL directly. Returns a Sequel::Model object like `results`.
