@@ -14,6 +14,7 @@ class Experiment
     @dbtable = igor.dbtable
     @opt = igor.opt
     @serialized_file = serialized_file
+    @expect = igor.expect
   end
 
   def run()
@@ -32,9 +33,10 @@ class Experiment
     # puts "#{c}\n--------------".black
 
     # insert job record no matter what, so we can see errors
-    new_job_record = params.merge({:error => 'true', :results => ''})
+    new_job_record = params.merge({:error => 'x', :results => ''})
     job_key = insert(:jobs, new_job_record)
 
+    error = '' # no news is good news
     begin
       Open3.popen2e(c) {|i,oe,waiter|
         pid = waiter.pid
@@ -50,14 +52,24 @@ class Experiment
         end
       }
       results = @parser[pout]
-      if not results or (results.size == 0)
+
+      # box up data into an array (so we can easily handle multiple data records if needed)
+      results = [] if not results
+      results = [results] if results.is_a? Hash
+      
+      if results.size == 0
         puts "Error! No results."
-        error = true
+        puts error = "no results"
         raise
       end
 
-      # box up data into an array (so we can easily handle multiple data records if needed)
-      results = [results] if results.is_a? Hash
+      missing = Set.new
+      results.each{|r| missing |= @expect - r.keys}
+      if not missing.empty?
+        puts "Error: missing fields: #{missing}, skipping insertion. See `jobs` for the output."
+        error = "missing: #{missing.to_a}"
+        raise
+      end
 
       results.each {|d|
         new_record = params.merge(d)

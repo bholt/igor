@@ -67,6 +67,7 @@ module Igor
   @experiments = {}
   @jobs = {}
   @interesting = Set.new
+  @expect = Set.new
 
   def dsl(&dsl_code)
     @opt = parse_cmdline()
@@ -153,6 +154,10 @@ module Igor
   def setup(&blk) @setup = blk end
     
   def sbatch_flags(flags) @sbatch_flags = flags end
+
+  def expect(*fields)
+    @expect |= fields
+  end
 
   # END DSL methods
   #################################

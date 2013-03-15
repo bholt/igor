@@ -1,4 +1,5 @@
-require 'experiments'
+require_relative '../experiments'
+require 'set'
 
 # monkeypatching to add generally helpful stuff
 class Hash
