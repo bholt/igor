@@ -47,7 +47,7 @@ class Experiment
         exit_status = waiter.value
         if not exit_status.success?
           puts "Error!"
-          error = true
+          error = "exit status: #{exit_status}"
           raise
         end
       }
@@ -76,6 +76,7 @@ class Experiment
         puts new_record # print
         insert(@dbtable, new_record) unless @opt[:noinsert]
       }
+    rescue # do nothing, just do the ensures
     ensure
       update(:jobs, job_key, {:error => error.to_s, :results => results.to_s})
     end
