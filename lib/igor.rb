@@ -80,9 +80,6 @@ module Igor
 
     eval_dsl_code(&dsl_code)
 
-    status
-
-    # self.pry if @opt[:interactive]
   end
 
   #################################
