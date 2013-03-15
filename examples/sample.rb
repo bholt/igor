@@ -7,11 +7,13 @@ Igor do
   database 'sample_igor.db', :test
   command "srun #{File.dirname(__FILE__)}/slow_loop.sh %{a} %{b} %{c}"
   
-  sbatch_flags "--time=30:00 #{
-      (`hostname` =~ /pal/) \
-        ? '--account=pal --partition=pal' \
-        : '--partition=grappa'
-      }"
+  sbatch_flags << "--time=30:00"
+  # if `hostname` =~ /pal/
+  #   sbatch_flags << '--account=pal --partition=pal'
+  # else
+  #   sbatch_flags << '--partition=grappa'
+  # end
+  sbatch_flags << (`hostname`=~/pal/ ? '--account=pal --partition=pal' : '--partition=grappa')
 
   # this would be interesting, and should be possible
   # command {

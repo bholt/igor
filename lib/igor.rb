@@ -68,6 +68,7 @@ module Igor
   @jobs = {}
   @interesting = Set.new
   @expect = Set.new
+  @sbatch_flags = []
 
   def dsl(&dsl_code)
     @opt = parse_cmdline()
@@ -150,7 +151,14 @@ module Igor
   # Parser
   def setup(&blk) @setup = blk end
     
-  def sbatch_flags(flags) @sbatch_flags = flags end
+  # Access sbatch flags array. To override, you may assign to it:
+  # Igor do
+  #   sbatch_flags = ["--time=4:00:00"]
+  # end
+  # 
+  # or more likely, append:
+  #   sbatch_flags << "--time=4:00:00"
+  attr_accessor :sbatch_flags
 
   def expect(*fields)
     @expect |= fields
@@ -408,9 +416,9 @@ module Igor
     p[:nnode] = 1 unless p[:nnode]
     p[:ppn] = 1 unless p[:ppn]
 
-    puts "sbatch --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags} --output=#{fout} --error=#{fout} #{cmd}"
-
-    s = `sbatch --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags} --output=#{fout} --error=#{fout} #{cmd}`
+    batch_cmd = "sbatch --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags.join(' ')} --output=#{fout} --error=#{fout} #{cmd}"
+    puts batch_cmd
+    s = `#{batch_cmd}`
 
     jobid = s[/Submitted batch job (\d+)/,1].to_i
 
