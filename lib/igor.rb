@@ -304,7 +304,7 @@ module Igor
     puts Hirb::Helpers::AutoTable.render(d.all) # (doesn't do automatic paging...)
   end
   
-  def _dsl_dataset(starting_dataset, *sql_query_args, &blk)
+  def _dsl_dataset(starting_dataset, &blk)
     d = starting_dataset
     if blk
       # same as DSL eval: if they want a handle, give it to 'em
@@ -314,7 +314,6 @@ module Igor
         d = d.instance_eval(&blk)
       end
     end
-    d = d.with_sql(*sql_query_args) if sql_query_args.size > 0
     return d
   end
   
@@ -328,14 +327,14 @@ module Igor
   # get field value from result with given id:
   # > results[12].nnode
   # 
-  def results(*sql_query_args, &blk)
-    d = _dsl_dataset(@db[@dbtable], *sql_query_args, &blk)
+  def results(&blk)
+    d = _dsl_dataset(@db[@dbtable], &blk)
     return Class.new(Sequel::Model) { set_dataset d }
   end
   
   # Query separate "jobs" table that has all experiments run, whether they succeeded or not.
-  def jobs(*sql_query_args, &blk)
-    d = _dsl_dataset(@db[:jobs], *sql_query_args, &blk)
+  def jobs(&blk)
+    d = _dsl_dataset(@db[:jobs], &blk)
     return Class.new(Sequel::Model) { set_dataset d }
   end
   
@@ -344,6 +343,20 @@ module Igor
   # starting with the most recent jobs first.
   def recent_jobs
     return jobs{ select(:id, :error, :nnode, :ppn, :run_at, :outfile).reverse_order(:id) }
+  end
+  
+  # Query the database using SQL directly. Returns a Sequel::Model object like `results`.
+  #
+  # Example usage:
+  # pry(Igor)> sql('select nnode, ppn, a, b, c from jobs').all
+  # +-------+-----+---+---+-----+
+  # | nnode | ppn | a | b | c   |
+  # +-------+-----+---+---+-----+
+  # | 2     | 1   | 2 | 2 | abc |
+  # +-------+-----+---+---+-----+
+  def sql(*sql_query_args)
+    d = @db.fetch(*sql_query_args)
+    return Class.new(Sequel::Model) { set_dataset d }
   end
   
   # doesn't currently work ('create_or_replace_view' unsupported for SQLite, or Sequel bug?)
