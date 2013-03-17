@@ -95,8 +95,8 @@ module Igor
   def params(&blk) @params.merge!(Params.new(&blk)) end
 
   # Allow looking up experiments with aliases (currently just index in experiments array)
-  def exp(a) @experiments[@job_aliases[a]] end
-  def job(a) exp(a) end
+  # def exp(a) @experiments[@job_aliases[a]] end
+  # def job(a) exp(a) end
 
   # Set command template string
   def command(c=nil)
@@ -149,7 +149,7 @@ module Igor
   end
 
   # Parser
-  def setup(&blk) @setup = blk end
+  # def setup(&blk) @setup = blk end
     
   # Access sbatch flags array. To override, you may assign to it:
   # Igor do

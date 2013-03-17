@@ -95,7 +95,7 @@ class Experiment
   def self.color_command(command, params)
     '( '.blue +
     '{ '.red + params.map{|n,p| "#{n}:".green + p.to_s.yellow}.join(', ') + ' }'.red +
-    ", " + (command % params).black +
+    ", " +
     ' )'.blue
   end
 

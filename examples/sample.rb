@@ -8,18 +8,7 @@ Igor do
   command "srun #{File.dirname(__FILE__)}/slow_loop.sh %{a} %{b} %{c}"
   
   sbatch_flags << "--time=30:00"
-  # if `hostname` =~ /pal/
-  #   sbatch_flags << '--account=pal --partition=pal'
-  # else
-  #   sbatch_flags << '--partition=grappa'
-  # end
   sbatch_flags << (`hostname`=~/pal/ ? '--account=pal --partition=pal' : '--partition=grappa')
-
-  # this would be interesting, and should be possible
-  # command {
-  #   `sbcast stuff`
-  #   `mpirun echo #{@a} #{@b} #{@c}`
-  # }
 
   # beware: the literal source given will be eval'd to create the parser for each job, no state will be transfered
   parser {|cmdout|
@@ -35,7 +24,7 @@ Igor do
     # e ->{@a*2}, ->{@a*4} # pass lambdas to do expression params
   }
 
-  run { d 4; tag 'sample_tag' } # tag a set of runs as being part of a logical set 
+  # run { d 4; tag 'sample_tag' } # tag a set of runs as being part of a logical set 
 
   interact
 end
