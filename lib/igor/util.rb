@@ -100,6 +100,50 @@ module Igor
   def self.igor_dir
     return "#{Dir.pwd}/.igor"
   end
+  
+  # iterator that takes a dict of variables and enumerates all possible combinations
+  # yields: dict of experiment parameters
+  def enumerate_exps(d, keys=d.keys, upb=new_binding())
+    if keys.empty? then
+      h = {}
+      yield h
+    else
+      k,*rest = *keys
+      vals = d[k]
+      # puts "#{k.inspect} -- #{d.inspect}"
+      if not vals.respond_to? :each then
+        vals = [vals]
+      end
+    
+      vals.each {|v|
+        if v.is_a? Proc
+          begin
+            eval("#{k} = #{v[]}", upb)
+          rescue TypeError, NameError
+            puts "#{v}: #{k} is not available!"
+            exit()
+          end
+        elsif v.is_a?(ExpressionString) || !v.is_a?(String) then
+          # evaluate as an expression (and give an error if it doesn't evaluate correctly)
+          begin
+            eval("#{k} = #{v}", upb)
+          rescue TypeError, NameError
+            puts "#{v}: #{k} is not available!"
+            exit()
+          end
+        else
+          eval("#{k} = '#{v}'", upb) # eval as a string literal instead of an expression
+        end
+        enumerate_exps(d, rest, upb) { |result|
+          if v.is_a? ExpressionString then
+            v = eval("#{v}", upb) if v.is_a? String
+          end
+          yield ({k => v}.merge(result))
+        }
+      }
+    end
+  end
+  
 end
 
 class ExpressionString < String
