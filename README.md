@@ -90,7 +90,9 @@ There are also some additional commands that don't make sense in the configure s
 * `status` (alias: `st`): Print the status of all jobs. For example:
 
     ```ruby
-    [ 0] 2369991: JOB_RUNNING on node[0158,0160-0170,0172-0197,0199,0202-0204,0397-0404,0406,0476-0488], time: 01:49:16  [ 1] 2370012: JOB_RUNNING on node[0423,0425-0439], time: 00:49:51[ 2] 2370013: JOB_RUNNING on node[0440,0445-0459], time: 00:49:51
+    [ 0] 2369991: JOB_RUNNING on node[0158,0160-0170,0172-0197,0199,0202-0204,0397-0404,0406,0476-0488], time: 01:49:16  
+    [ 1] 2370012: JOB_RUNNING on node[0423,0425-0439], time: 00:49:51
+    [ 2] 2370013: JOB_RUNNING on node[0440,0445-0459], time: 00:49:51
     [ 3] 2370015: JOB_RUNNING on node[0407-0422,0460-0475], time: 00:46:48
          { nnode:32, ppn:2, scale:28 }
     [ 4] 2370016: JOB_PENDING on , time: 21:49:16
