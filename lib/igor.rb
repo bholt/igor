@@ -28,6 +28,7 @@ class Params < Hash
   def method_missing(selector, *args, &blk)
     self[selector.downcase.to_sym] = args
   end
+  
 end
 
 def parse_cmdline(opt=nil)
@@ -240,7 +241,7 @@ module Igor
       attach_again = false
       sleep 0.5
       PTY.spawn "sattach #{job_with_step}" do |r,w,pid|
-        Signal.trap("INT") { puts "exiting..."; Process.kill("INT",pid) }
+        Signal.trap("INT") { puts "detaching..."; Process.kill("INT",pid) }
         begin
           r.sync
           r.each_line do |l|

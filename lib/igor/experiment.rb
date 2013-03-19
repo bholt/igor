@@ -68,7 +68,7 @@ class Experiment
       missing = Set.new
       results.each{|r| missing |= @expect - r.keys}
       if not missing.empty?
-        puts "Error: missing fields: #{missing}, skipping insertion. See `jobs` for the output."
+        puts "Error: missing fields: #{missing.to_a}, skipping insertion. See `jobs` for the output."
         error = "missing: #{missing.to_a}"
         raise
       end
@@ -96,7 +96,6 @@ class Experiment
   def self.color_command(command, params)
     '( '.blue +
     '{ '.red + params.map{|n,p| "#{n}:".green + p.to_s.yellow}.join(', ') + ' }'.red +
-    ", " +
     ' )'.blue
   end
 

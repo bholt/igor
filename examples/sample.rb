@@ -5,7 +5,7 @@ exe = 'graph.exe'
 
 Igor do
   database 'sample_igor.db', :test
-  command "srun #{File.dirname(__FILE__)}/slow_loop.sh %{a} %{b} %{c}"
+  command "srun #{File.dirname(__FILE__)}/slow_loop.sh %{a} %{b} %{e}"
   
   sbatch_flags << "--time=30:00"
   sbatch_flags << (`hostname`=~/pal/ ? '--account=pal --partition=pal' : '--partition=grappa')
@@ -21,8 +21,10 @@ Igor do
     a 1, 2
     b '1', '2', '3'
     c 'abc'
-    # e ->{@a*2}, ->{@a*4} # pass lambdas to do expression params
+    e expr('a*2') # pass lambdas to do expression params
   }
+  
+  expect :ao, :bo, :co
 
   # run { d 4; tag 'sample_tag' } # tag a set of runs as being part of a logical set 
 
