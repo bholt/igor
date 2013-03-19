@@ -102,4 +102,11 @@ module Igor
   end
 end
 
+class ExpressionString < String
+end
+
+def expr(expr)
+  return ExpressionString.new(expr)
+end
+
 

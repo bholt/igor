@@ -15,6 +15,7 @@ class Experiment
     @opt = igor.opt
     @serialized_file = serialized_file
     @expect = igor.expect
+    @ignore = igor.ignore
   end
 
   def run()

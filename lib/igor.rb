@@ -68,6 +68,7 @@ module Igor
   @jobs = {}
   @interesting = Set.new
   @expect = Set.new
+  @ignore = Set.new
   @sbatch_flags = []
 
   def dsl(&dsl_code)
@@ -75,6 +76,7 @@ module Igor
     
     # fill 'params' with things like 'tag', 'run_at', etc. that are not usually specified
     @common_info = common_info()
+    @ignore << :run_at
 
     # make sure directory where we'll put things exists
     begin Dir.mkdir(igor_dir) rescue Errno::EEXIST end
@@ -160,9 +162,16 @@ module Igor
   #   sbatch_flags << "--time=4:00:00"
   attr_accessor :sbatch_flags
 
+  # Fields that, if missing in parsed output, make the run invalid (so not inserted in results table, just in `:jobs`)
   def expect(*fields)
     @expect |= fields
   end
+  
+  # fields to ignore for the purposes of `run_already?`
+  def ignore(*fields)
+    @ignore |= fields
+  end
+  
 
   # END DSL methods
   #################################
@@ -429,9 +438,13 @@ module Igor
   def enumerate_experiments(override_params)
     params = @params.merge(@common_info).merge(override_params)
     enumerate_exps(params) do |p|
-      p[:command] = @command % p  # make sure substitution goes already, use in run_already? check
+      p[:command] = @command % p
       
-      if (not @opt[:dry_run]) && ((not run_already?(p)) || @opt[:force])
+      pcheck = p.clone.delete_if{|k,v| @ignore.include? k }
+      
+      if @opt[:dry_run]
+        print "<dry run> ".magenta
+      elsif (not run_already?(pcheck)) || @opt[:force]
         setup_experiment(p)
       else
         print "<skipped> ".red
