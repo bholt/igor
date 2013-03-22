@@ -104,16 +104,18 @@ There are also some additional commands that don't make sense in the configure s
     
     In square brackets [] is a "job alias" that you can use in a few commands to specify a running job. Notice some jobs have a param hash beneath them. These are jobs that were submitted by this Igor session, and the hash displays just the "distinguishing" parameters (ones that vary).
 
-* `attach` (alias: `a`, `at`): Attach to a running or pending job (read-only). Detach with `ctrl-c`.
+* `attach([job_alias])` (aliases: `a`, `at`): Attach to a running or pending job (read-only). Detach with `ctrl-c`. Defaults to the last job.
 
-* `view(path|job_alias)`: Cat the output file for a job. You can specify either the output path directly or with a job alias, which you can find by running `status`.
+* `view([path|job_alias])`: Cat the output file for a job. You can specify either the output path directly or with a job alias, which you can find by running `status`. Defaults to the last job.
 
-* `tail(path|job_alias)`: Just like `view` but tails the file, in case it's still growing. Mostly unnecessary if the `attach` command works.
+* `tail([path|job_alias])`: Just like `view` but tails the file, in case it's still growing. Mostly unnecessary if the `attach` command works. Defaults to the last job.
+
+* `kill([job_alias])`: Kill (using `scancel`) job given a job_alias. Defaults to the last job.
 
 * `gdb(node,pid)`: Convenience command to create the command to ssh to a node and attach to a running process. Pry interprets commands beginning with "." as shell commands, and allows Ruby-style string "interpolation", so to use this, you can call: 
 
     ```ruby
-    pry(Igor)> .#{gdb('n01','1234')}
+    pry(Igor)> .#{gdb 'n01', '1234'}
     ```
 
 * `results(&blk)`, `jobs(&blk)`, `recent_jobs(&blk)`, `sql(string)`: Query the database in a number of ways. See below.

@@ -189,11 +189,9 @@ module Igor
     end
   end
   
-  
-  def view(a)
-    # View output from batch job. Interprets a number as a job alias and looks it up,
-    # interprets a String as the path of the output file itself.
-    
+  # View output from batch job. Interprets a number as a job alias and looks it up,
+  # interprets a String as the path of the output file itself.  
+  def view(a = @job_aliases.keys.last)
     if a.is_a? Integer
       j = @jobs[@job_aliases[a]]
       j.cat
@@ -203,6 +201,14 @@ module Igor
   end
   alias :v :view
   
+  # Kill/cancel a job using its job alias.
+  def kill(job_alias = @job_aliases.keys.last)
+    j = @jobs[@job_aliases[job_alias]]
+    return if not j
+    puts `scancel #{j.jobid}`.strip
+  end
+  
+  # Attach to running job (view output live) using job_alias (the number listed by `status`, e.g. [ 0]).
   def attach(job_alias = @job_aliases.keys.last)
     
     j = @jobs[@job_aliases[job_alias]]
