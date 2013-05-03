@@ -78,8 +78,21 @@ module Helpers
           && @db[@dbtable].filter(p).count > 0
     end
   end
-
+  
   module DSL
+    
+    def dsl_dataset(starting_dataset, &blk)
+      d = starting_dataset
+      if blk
+        # same as DSL eval: if they want a handle, give it to 'em
+        if blk.arity == 1
+          d = yield d
+        else # otherwise just evaluate directly on the dataset (implicit 'self')
+          d = d.instance_eval(&blk)
+        end
+      end
+      return d
+    end
 
     def eval_dsl_code(&dsl_code)
       # do an arity check so users of the DSL can leave off the object parameter:
@@ -96,7 +109,16 @@ module Helpers
   end
 end
 
+class Sequel::Dataset
+  def query()
+    d = Helpers::DSL::dsl_dataset(self, &blk)
+    return Class.new(Sequel::Model) { set_dataset d }
+  end
+end
+
 module Igor
+  
+  
   def self.igor_dir
     return "#{Dir.pwd}/.igor"
   end
