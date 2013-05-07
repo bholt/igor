@@ -77,6 +77,8 @@ class Experiment
         new_record = params.merge(d)
         puts new_record # print
         insert(@dbtable, new_record) unless @opt[:noinsert]
+        
+        open("temp.out.rb","w"){|f| f.write new_record.to_s}
       }
     rescue # do nothing, just do the ensures
     ensure

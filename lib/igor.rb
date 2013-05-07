@@ -58,6 +58,7 @@ module Igor
 
   extend Helpers::Sqlite
   extend Helpers::DSL
+  extend Helpers::Git
 
   attr_reader :dbpath, :dbtable, :opt, :parser_file
 

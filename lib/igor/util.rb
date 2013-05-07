@@ -31,11 +31,15 @@ class Array
 end
 
 class MatchData
-  def dictionize
+  def dictionize(opts={allow_int:false})
     h = {}
     names .zip captures do |name, cap|
       if cap then
-        h[name.to_sym] = cap.match(REG_NUM) ? cap.to_f : cap
+        if opts[:allow_int]
+          h[name.to_sym] = Integer(cap) rescue Float(cap) rescue cap
+        else
+          h[name.to_sym] = cap.match(REG_NUM) ? cap.to_f : cap
+        end
       end
     end
     return h
@@ -54,13 +58,57 @@ end
 
 
 module Helpers
+  
+  module Git
+    def find_up_path(filename)
+      fs = []
+      p = Dir.pwd
+      while p.length > 0 do
+        if Dir.entries(p).include?(filename) then 
+          fs << p+'/'+filename
+        end
+       i = p.rindex('/')
+        if i == 0 then
+          p = ""
+        else
+          p = p[0..i-1]
+        end
+      end
+      return fs
+    end
+    
+    # return sha of the most recent commit (string)
+    def current_commit()
+      gitpaths = find_up_path(".git")
+      return '' if gitpaths.length == 0
+      $repo = Grit::Repo.new(gitpaths[0]) if $repo == nil
+      return $repo.commits("HEAD").first.sha
+    end
+
+    def current_tag()
+      gitpaths = find_up_path(".git")
+      return '' if gitpaths.length == 0
+      $repo = Grit::Repo.new(gitpaths[0]) if $repo == nil
+      return $repo.recent_tag_name
+    end  
+
+    # return dict with info that should be included in every experiment record
+    def common_info()
+      {
+        commit: current_commit(),
+        run_at: Time.now.to_s,
+        tag: current_tag()
+      }
+    end
+  end
+  
   module Sqlite
     def insert(dbtable, record)
       @db ||= Sequel.sqlite(@dbpath)
      
       # ensure there are fields to hold this record
       tbl = prepare_table(dbtable, record, @db)
-
+      
       tbl.insert(record)
     end
     
