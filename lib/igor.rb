@@ -315,6 +315,7 @@ module Igor
     sf = "#{igor_dir}/scratch.rb"
     open(sf,"w"){|f| f.write("Igor do\n  \nend\n")} unless File.exists? sf
     Pry::Editor.invoke_editor(sf,2)
+    load sf
   end
 
   # ----- Deprecated -----  
