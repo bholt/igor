@@ -311,6 +311,12 @@ module Igor
     self.pry
   end
 
+  def scratch()
+    sf = "#{igor_dir}/scratch.rb"
+    open(sf,"w"){|f| f.write("Igor do\n  \nend\n")} unless File.exists? sf
+    Pry::Editor.invoke_editor(sf,2)
+  end
+
   # ----- Deprecated -----  
   def print_results(&blk)
     # print results (records in database), optionally takes a block to specify a custom query
