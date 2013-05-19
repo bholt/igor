@@ -307,8 +307,11 @@ module Igor
   end
   
   def interact
-    status
-    self.pry
+    # only do "interact" if it's the script actuall being run...
+    if (caller[0] =~ /#{$0}/)
+      status
+      self.pry
+    end
   end
 
   def scratch()
