@@ -192,8 +192,10 @@ module Igor
   
   # View output from batch job. Interprets a number as a job alias and looks it up,
   # interprets a String as the path of the output file itself.  
-  def view(a = @job_aliases.keys.last)
-    if a.is_a? Integer
+  def view(a = @job_aliases.keys.last, &blk)
+    if blk
+      view jobs.reverse_order(:id).where(Params.new(&blk)).first.outfile
+    elsif a.is_a? Integer
       j = @jobs[@job_aliases[a]]
       j.cat
     elsif a.is_a? String
