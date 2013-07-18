@@ -458,7 +458,9 @@ module Igor
     p[:nnode] = 1 unless p[:nnode]
     p[:ppn] = 1 unless p[:ppn]
 
-    batch_cmd = "sbatch --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags.join(' ')} --output=#{fout} --error=#{fout} #{cmd}"
+    jobname = $0.gsub(/(\.\/|\.rb)/,'')
+
+    batch_cmd = "sbatch --job-name='#{jobname}' --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags.join(' ')} --output=#{fout} --error=#{fout} #{cmd}"
     puts batch_cmd
     s = `#{batch_cmd}`
 
