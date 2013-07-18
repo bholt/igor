@@ -204,6 +204,19 @@ module Igor
   end
   alias :v :view
   
+  # takes a query block and runs the output of the results through the parser again
+  # example:
+  #   reparse{where :jobid => 3065519}
+  def reparse(dataset, &blk)
+    dataset.instance_eval(&blk).each do |r|
+      h = parser[open(r[:outfile]).read].merge(r)
+      ig = @ignore << :id << :error << :outfile << :results
+      h.delete_if{|k| ig.include? k}
+      # puts h
+      puts insert(@dbtable, h)
+    end
+  end  
+  
   # Kill/cancel a job using its job alias.
   def kill(job_alias = @job_aliases.keys.last)
     j = @jobs[@job_aliases[job_alias]]
