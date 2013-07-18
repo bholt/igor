@@ -190,13 +190,13 @@ module Igor
       if not vals.respond_to? :each then
         vals = [vals]
       end
-      
+
       vals.each {|v|
         if v.is_a? Proc
           begin
             eval("#{k} = #{v[]}", upb)
-          rescue TypeError, NameError => e
-            puts "#{k} = #{v.to_source} cannot be evaluated: #{e}"
+          rescue TypeError, NameError
+            puts "#{v}: #{k} is not available!"
             exit()
           end
         elsif v.is_a?(ExpressionString) || !v.is_a?(String) then
@@ -204,23 +204,17 @@ module Igor
           begin
             # add parameter setting to scope (to support expr() construct)
             eval("#{k} = #{v}", upb)
-          rescue NameError => e
-            if not delayed.include? k
-              # put key back on the list to evaluate later (when the value is available, hopefully), but only do this once
-              delayed << k
-              rest << k 
-            end
-          rescue TypeError => e
-            puts "#{k} = #{v} cannot be calculated: #{e}"
+          rescue TypeError, NameError
+            puts "#{v}: #{k} is not available!"
             exit()
           end
         else
           eval("#{k} = '#{v}'", upb) # eval as a string literal instead of an expression
         end
-        
+
         # generate each element in the cross product
         # of the rest of the parameters
-        enumerate_exps(d, rest, upb, delayed) { |result|
+        enumerate_exps(d, rest, upb) { |result|
           if v.is_a? ExpressionString then
             v = eval("#{v}", upb) if v.is_a? String
           end

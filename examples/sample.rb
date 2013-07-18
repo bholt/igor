@@ -19,7 +19,6 @@ Igor do
   params {
     nnode 2; ppn 1
     a 1, 2
-    f expr('b')
     b '1', '2', '3'
     c 'abc'
     e expr('a*2') # pass lambdas to do expression params
