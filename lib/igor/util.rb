@@ -171,10 +171,12 @@ module Igor
     return "#{Dir.pwd}/.igor"
   end
   
+  def new_binding; binding; end
+  
   # iterator that enumerates the cartesian product
   # of all experiment parameters
   # yields: Hash: parameter=>value bindings for a single experiment
-  def enumerate_exps(d, keys=d.keys, upb=new_binding(), delayed=Set.new)
+  def enumerate_exps(d, keys=d.keys, upb=new_binding, delayed=Set.new)
     if keys.empty? then
       h = {}
       yield h
@@ -188,7 +190,7 @@ module Igor
       if not vals.respond_to? :each then
         vals = [vals]
       end
-            
+      
       vals.each {|v|
         if v.is_a? Proc
           begin
