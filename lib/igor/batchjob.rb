@@ -1,8 +1,8 @@
-require_relative 'slurm_ffi'
 require_relative 'util'
-require 'file-tail'
 
 module JobOutput
+  require 'file-tail'
+  
   def tail
     stop_tailing = false
     out.backward(10).tail {|l|
@@ -16,18 +16,28 @@ module JobOutput
   end
 end
 
-class BatchJob
+class SlurmJob
+  require_relative 'slurm_ffi'
+  
+  @@jobs = {}
+  def self.jobs() @@jobs; end
+  
   attr_reader :jobid, :state, :nodes, :out_file
-  def initialize(jobid,slurm_info=nil)
-    @jobid = jobid
-    @out_file = BatchJob.fout(jobid)
-    update(slurm_info) if slurm_info
+  def initialize(opts={:sinfo => nil, :params => nil})
+    if not opts[:sinfo]
+      batch_cmd = "sbatch --job-name='#{jobname}' --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags.join(' ')} --output=#{fout} --error=#{fout} #{cmd}"
+      puts batch_cmd
+      s = `#{batch_cmd}`    
+      @jobid = s[/Submitted batch job (\d+)/,1].to_i
+    else
+      @jobid = sinfo[:job_id]
+      update(sinfo)
+    end
+    @@jobs[@jobid] = self
   end
   
-  def self.fout(jobid=nil)
-    s = "#{Igor.igor_dir}/igor.%j.out"
-    s.gsub!(/%j/, jobid.to_s) if jobid
-    return s
+  def output_path
+    "#{Igor.igor_dir}/igor.%j.out".gsub(/%j/, @jobid.to_s)
   end
 
   def update(sinfo=nil)
@@ -48,6 +58,25 @@ class BatchJob
     Slurm.slurm_free_job_info_msg(jmsg) if jmsg
   end
 
+  def update_jobs
+    jptr = FFI::MemoryPointer.new :pointer
+    Slurm.slurm_load_jobs(0, jptr, 0)
+    raise "unable to update jobs, slurm returned NULL" if jptr.get_pointer(0) == FFI::Pointer::NULL
+    jmsg = Slurm::JobInfoMsg.new(jptr.get_pointer(0))
+    
+    @@jobs = {}
+    
+    (0...jmsg[:record_count]).each do |i|
+      sinfo = Slurm::JobInfo.new(jmsg[:job_array]+i*Slurm::JobInfo.size)
+      if sinfo[:user_id] == Process.uid
+        jobid = sinfo[:job_id]
+        @@jobs[jobid] = SlurmJob.new(jobid,sinfo)
+      end
+    end
+
+    Slurm.slurm_free_job_info_msg(jmsg)
+  end
+
   def to_s()
     time = @state == :JOB_COMPLETE ? total_time : elapsed_time
     "#{@jobid}: #{@state} on #{@nodes}, time: #{time}"
@@ -57,7 +86,7 @@ class BatchJob
     Time.at(Time.now.tv_sec - @start_time).gmtime.strftime('%R:%S')
   end
   def total_time()   Time.at(@end_time - @start_time).gmtime.strftime('%R:%S') end
-  def out()          @out ||= File.open(@out_file, 'r') end
+  def out()          @out ||= File.open(output_path, 'r') end
   
   include JobOutput
 end

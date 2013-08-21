@@ -62,12 +62,17 @@ module Igor
 
   attr_reader :dbpath, :dbtable, :opt, :parser_file
 
+  if slurm?
+    Job = SlurmJob
+  else
+    Job = LocalJob
+  end
+
   @dbpath = nil
   @dbtable = nil
   @command = nil
   @params = {}
   @experiments = {}
-  @jobs = {}
   @interesting = Set.new
   @expect = Set.new
   @ignore = Set.new
@@ -196,7 +201,7 @@ module Igor
     if blk
       view jobs.reverse_order(:id).where(Params.new(&blk)).first.outfile
     elsif a.is_a? Integer
-      j = @jobs[@job_aliases[a]]
+      j = Job.jobs[@job_aliases[a]]
       j.cat
     elsif a.is_a? String
       File.open(a,'r') {|f| puts f.read }
@@ -219,7 +224,7 @@ module Igor
   
   # Kill/cancel a job using its job alias.
   def kill(job_alias = @job_aliases.keys.last)
-    j = @jobs[@job_aliases[job_alias]]
+    j = Job.jobs[@job_aliases[job_alias]]
     return if not j
     puts `scancel #{j.jobid}`.strip
   end
@@ -227,7 +232,7 @@ module Igor
   # Attach to running job (view output live) using job_alias (the number listed by `status`, e.g. [ 0]).
   def attach(job_alias = @job_aliases.keys.last)
     
-    j = @jobs[@job_aliases[job_alias]]
+    j = Job.jobs[@job_aliases[job_alias]]
     return if not j
     
     j.update
@@ -295,7 +300,7 @@ module Igor
   def status
     @job_aliases = {}
     update_jobs
-    @jobs.each_with_index {|(id,job),index|
+    Job.jobs.each_with_index {|(id,job),index|
       puts "[#{'%2d'%index}]".cyan + " " + job.to_s
       @job_aliases[index] = id  # so user can refer to an experiment by a shorter number (or alias)
       
@@ -423,30 +428,10 @@ module Igor
   # Interactive methods
   ##########################
 
-  def update_jobs
-    jptr = FFI::MemoryPointer.new :pointer
-    Slurm.slurm_load_jobs(0, jptr, 0)
-    raise "unable to update jobs, slurm returned NULL" if jptr.get_pointer(0) == FFI::Pointer::NULL
-    jmsg = Slurm::JobInfoMsg.new(jptr.get_pointer(0))
-    
-    @jobs = {}
-    
-    (0...jmsg[:record_count]).each do |i|
-      sinfo = Slurm::JobInfo.new(jmsg[:job_array]+i*Slurm::JobInfo.size)
-      if sinfo[:user_id] == Process.uid
-        jobid = sinfo[:job_id]
-        @jobs[jobid] = BatchJob.new(jobid,sinfo)
-      end
-    end
-
-    Slurm.slurm_free_job_info_msg(jmsg)
-  end
-
   def setup_experiment(p)
     d = igor_dir
 
     f = "#{d}/igor.#{Process.pid}.#{SecureRandom.hex(3)}.bin"
-    fout = BatchJob.fout
 
     e = Experiment.new(p, self, f)
 
@@ -460,13 +445,7 @@ module Igor
 
     jobname = $0.gsub(/(\.\/|\.rb)/,'')
 
-    batch_cmd = "sbatch --job-name='#{jobname}' --nodes=#{p[:nnode]} --ntasks-per-node=#{p[:ppn]} #{@sbatch_flags.join(' ')} --output=#{fout} --error=#{fout} #{cmd}"
-    puts batch_cmd
-    s = `#{batch_cmd}`
-
-    jobid = s[/Submitted batch job (\d+)/,1].to_i
-
-    @jobs[jobid] = BatchJob.new(jobid)
+    Job.new(p)
     @experiments[jobid] = e
   end
 

@@ -26,8 +26,7 @@ class Experiment
 
     @parser = eval(@parser_str)
 
-    @params[:jobid] = ENV['SLURM_JOBID'].to_i
-    @params[:outfile] = BatchJob.fout(@params[:jobid])
+    @params[:outfile] = Job.output_path
     @params[:started_at] = Time.now.to_s
 
     # puts "running..."
