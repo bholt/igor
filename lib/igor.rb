@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-require 'colored'
 require 'securerandom'
 require 'sourcify'
 require 'pry'

@@ -77,27 +77,32 @@ module Helpers
       return fs
     end
     
+    def rugged(&blk)
+      begin
+        require 'rugged'
+        $repo = Rugged::Repository.new(Rugged::Repository.discover) if not $repo
+        return yield
+      rescue Rugged::RepositoryError, LoadError
+        return nil
+      end
+    end
+    
+    
     # return sha of the most recent commit (string)
-    def current_commit()
-      gitpaths = find_up_path(".git")
-      return '' if gitpaths.length == 0
-      $repo = Grit::Repo.new(gitpaths[0]) if $repo == nil
-      return $repo.commits("HEAD").first.sha
+    def current_commit
+      rugged { $repo.head.target }
     end
 
-    def current_tag()
-      gitpaths = find_up_path(".git")
-      return '' if gitpaths.length == 0
-      $repo = Grit::Repo.new(gitpaths[0]) if $repo == nil
-      return $repo.recent_tag_name
-    end  
+    def current_tag
+      rugged { $repo.tags.count > 0 ? `git describe --abbrev=0 --tags` : nil }
+    end
 
     # return dict with info that should be included in every experiment record
     def common_info()
       {
-        commit: current_commit(),
-        run_at: Time.now.to_s,
-        tag: current_tag()
+        commit: current_commit,
+           tag: current_tag,
+        run_at: Time.now.to_s
       }
     end
   end

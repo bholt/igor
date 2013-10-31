@@ -11,7 +11,6 @@ Gem::Specification.new do |gem|
 
     #dependencies
     # (these are the earliest *tested* versions)
-    gem.add_dependency('grit', '>= 2.4.1')
     gem.add_dependency('awesome_print', '>= 1.0.2')
     gem.add_dependency('open4', '>= 1.3.0')
     gem.add_dependency('sequel', '>= 3.32.0')

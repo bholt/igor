@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-require "grit"
 require "sequel"
 require "open4"
 require "awesome_print"
@@ -39,30 +38,6 @@ def run(cmd)
   else
     return cmdout + cmderr
   end
-end
-
-# return sha of the most recent commit (string)
-def current_commit()
-  gitpaths = find_up_path(".git")
-  return nil if gitpaths.length == 0
-  $repo = Grit::Repo.new(gitpaths[0]) if $repo == nil
-  return $repo.commits("HEAD").first.sha
-end
-
-def current_tag()
-  gitpaths = find_up_path(".git")
-  return nil if gitpaths.length == 0
-  $repo = Grit::Repo.new(gitpaths[0]) if $repo == nil
-  return $repo.recent_tag_name
-end  
-
-# return dict with info that should be included in every experiment record
-def common_info()
-  {
-    :commit => current_commit(),
-    :run_at => Time.now.to_s,
-    :tag => current_tag()
-  }
 end
 
 # parses command line options
