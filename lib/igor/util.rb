@@ -204,7 +204,7 @@ module Igor
             puts "#{v}: #{k} is not available!"
             exit()
           end
-        elsif v.is_a?(ExpressionString) || !v.is_a?(String) then
+        elsif v.is_a?(ExpressionString) || (!v.is_a?(String) && v != nil) then
           # evaluate as an expression (and give an error if it doesn't evaluate correctly)
           begin
             # add parameter setting to scope (to support expr() construct)
@@ -213,7 +213,7 @@ module Igor
             puts "#{v}: #{k} is not available!"
             exit()
           end
-        else
+        elsif v != nil
           eval("#{k} = '#{v}'", upb) # eval as a string literal instead of an expression
         end
 
