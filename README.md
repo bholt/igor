@@ -1,5 +1,6 @@
-# Igor
-------------
+Igor
+=====
+
 ## Not just for mad scientists.
 Igor is the ideal lab assistant for any grad student running a countable but nearly infinite number of experiments. It will carry out your orders with terrifying exactitude and collect results.
 
