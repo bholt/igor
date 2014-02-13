@@ -53,12 +53,21 @@ class Experiment
           raise
         end
       }
-      results = @parser[pout]
+
+      puts "Parsing results"
+      begin
+        results = @parser[pout]
+      rescue => e
+        puts e
+        puts e.backtrace
+        puts "Error! parsing failed"
+        raise
+      end
+      puts "Parsing results completed"
 
       # box up data into an array (so we can easily handle multiple data records if needed)
       results = [] if not results
       results = [results] if results.is_a? Hash
-      
       if results.size == 0
         puts "Error! No results."
         puts error = "no results"
