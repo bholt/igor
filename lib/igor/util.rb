@@ -99,11 +99,12 @@ module Helpers
 
     # return dict with info that should be included in every experiment record
     def common_info()
-      {
-        commit: current_commit,
-           tag: current_tag,
-        run_at: Time.now.to_s
-      }
+      h = { run_at: Time.now.to_s }
+      if rugged{true}
+        h[:commit] = current_commit
+        h[:tag] = current_tag if current_tag
+      end
+      return h
     end
   end
   
@@ -123,12 +124,10 @@ module Helpers
     end
     
     def run_already?(params)
-      p = params.select{|k,v| k != :run_at }
-  
       # make sure all fields in params are existing columns, then query database
       return @db.table_exists?(@dbtable) \
           && (params.keys - @db[@dbtable].columns).empty? \
-          && @db[@dbtable].filter(p).count > 0
+          && @db[@dbtable].filter(params).count > 0
     end
   end
   
