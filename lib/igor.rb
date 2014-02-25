@@ -25,7 +25,7 @@ class Params < Hash
   #
   # TODO: fix problem with collisions (i.e. 'partition' is already a method)
   def method_missing(selector, *args, &blk)
-    self[selector.downcase.to_sym] = args
+    self[selector.to_sym] = args
   end
   
 end
