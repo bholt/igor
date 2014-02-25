@@ -30,6 +30,14 @@ class Params < Hash
   
 end
 
+###############################################
+# require_relative that uses the location of
+# the symlink rather than the underlying file
+def require_relative_to_symlink(path)
+  dir = File.expand_path(File.dirname(caller[0][/(^.*?):/,1]))
+  require "#{dir}/#{path}"
+end
+
 def parse_cmdline(opt=nil)
   opt = { :force => false,
           :no_insert => false,
