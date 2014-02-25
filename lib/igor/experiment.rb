@@ -21,6 +21,11 @@ class Experiment
   def run()
     require 'open3'
     require 'experiments'
+    
+    # force-flush more often so we see output more
+    STDOUT.sync = true
+    STDERR.sync = true
+    
     pid = -1
     pout = ''
 
@@ -30,9 +35,9 @@ class Experiment
     @params[:outfile] = BatchJob.fout(@params[:jobid])
     @params[:started_at] = Time.now.to_s
 
-    # puts "running..."
+    puts "running..."
     c = @command % @params
-    # puts "#{c}\n--------------".black
+    puts "#{c}\n--------------".black
 
     # insert job record no matter what, so we can see errors
     new_job_record = params.merge({:error => 'x', :results => ''})
