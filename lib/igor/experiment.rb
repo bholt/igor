@@ -10,7 +10,7 @@ class Experiment
     @params = params
     @jobid = nil
     @parser_str = igor.parser.to_source
-    @dbpath = igor.dbpath
+    @dbinfo = igor.dbinfo
     @dbtable = igor.dbtable
     @opt = igor.opt
     @serialized_file = serialized_file

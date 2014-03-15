@@ -110,7 +110,7 @@ module Helpers
   
   module Sqlite
     def insert(dbtable, record)
-      @db ||= Sequel.sqlite(@dbpath)
+      @db ||= Sequel.connect(@dbinfo)
      
       # ensure there are fields to hold this record
       tbl = prepare_table(dbtable, record, @db)
