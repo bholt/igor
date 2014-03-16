@@ -109,11 +109,33 @@ module Helpers
   end
   
   module Sqlite
+    
+    def prepare_table(table, new_record)
+      @db.transaction do
+        # create table if it doesn't already exist
+        @db.create_table?(table) { primary_key :id }
+
+        # check each column exists and add it if it doesn't
+        new_record.each_pair do |k,v|
+          if not @db[table].columns.include? k then
+            # remove any nil values
+            if (v == nil) then
+              puts "Warning: can't create column (#{k}) from 'nil' value, ignoring."
+              new_record.delete(k)
+              next
+            end
+            @db.add_column(table, k, v.class)
+          end
+        end
+      end # transact
+      return @db[table]
+    end
+    
     def insert(dbtable, record)
       @db ||= Sequel.connect(@dbinfo)
      
       # ensure there are fields to hold this record
-      tbl = prepare_table(dbtable, record, @db)
+      tbl = prepare_table(dbtable, record)
       
       tbl.insert(record)
     end
@@ -129,6 +151,7 @@ module Helpers
           && (params.keys - @db[@dbtable].columns).empty? \
           && @db[@dbtable].filter(params).count > 0
     end
+    
   end
   
   module DSL
