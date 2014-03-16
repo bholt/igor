@@ -118,6 +118,7 @@ module Igor
   
   def database(dbinfo=nil, dbtable=nil)
     return @db if !dbinfo
+    @dbinfo ||= {}
     
     if dbinfo.is_a? String
       @dbinfo = {
@@ -125,13 +126,19 @@ module Igor
         database: File.expand_path(dbinfo)
       }
     else
-      assert dbinfo.is_a? Hash
-      # override defaults with anything set in `dbinfo`
-      @dbinfo = {
-        adapter: 'mysql',
-        host: '127.0.0.1',
-        user: 'root',
-      }.merge dbinfo
+      raise 'badly specified dbinfo' unless dbinfo.is_a? Hash
+      
+      if dbinfo[:socket]
+        @dbinfo.merge!({adapter:'mysql'}.merge(dbinfo))
+      else
+        # override defaults with anything set in `dbinfo`
+        @dbinfo = {
+          adapter: 'mysql',
+          host: '127.0.0.1',
+          user: 'root',
+          database: 'test'
+        }.merge( @dbinfo.merge dbinfo )
+      end
     end
     
     if dbtable
@@ -139,8 +146,8 @@ module Igor
     elsif dbinfo[:table]
       @dbtable = dbinfo[:table]
     end
-
-    @db = Sequel.sqlite(@dbinfo)
+    
+    @db = Sequel.connect(@dbinfo)
     return @db
   end
   alias :db :database
