@@ -1,4 +1,14 @@
 #!/usr/bin/env ruby
+
+require 'ruby2ruby'
+#Temporary fix for https://github.com/seattlerb/ruby_parser/issues/154
+class Regexp
+  [:ENC_NONE, :ENC_EUC, :ENC_SJIS, :ENC_UTF8].each do |enc|
+    send(:remove_const, enc)
+  end
+end
+require 'ruby_parser'
+
 require 'securerandom'
 require 'sourcify'
 require 'pry'
