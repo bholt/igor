@@ -67,9 +67,9 @@ module Igor
   extend Helpers::DSL
   extend Helpers::Git
 
-  attr_reader :dbpath, :dbtable, :opt, :parser_file
+  attr_reader :dbinfo, :dbtable, :opt, :parser_file
 
-  @dbpath = nil
+  @dbinfo = nil
   @dbtable = nil
   @command = nil
   @params = {}
@@ -116,10 +116,38 @@ module Igor
   end
   alias :cmd :command
   
-  def database(dbpath=nil, dbtable=nil)
-    @dbpath = File.expand_path(dbpath) if dbpath
-    @dbtable = dbtable if dbtable
-    @db = Sequel.sqlite(@dbpath) if dbpath
+  def database(dbinfo=nil, dbtable=nil)
+    return @db if !dbinfo
+    @dbinfo ||= {}
+    
+    if dbinfo.is_a? String
+      @dbinfo = {
+        adapter: 'sqlite',
+        database: File.expand_path(dbinfo)
+      }
+    else
+      raise 'badly specified dbinfo' unless dbinfo.is_a? Hash
+      
+      if dbinfo[:socket]
+        @dbinfo.merge!({adapter:'mysql'}.merge(dbinfo))
+      else
+        # override defaults with anything set in `dbinfo`
+        @dbinfo = {
+          adapter: 'mysql',
+          host: '127.0.0.1',
+          user: 'root',
+          database: 'test'
+        }.merge( @dbinfo.merge dbinfo )
+      end
+    end
+    
+    if dbtable
+      @dbtable = dbtable
+    elsif dbinfo[:table]
+      @dbtable = dbinfo[:table]
+    end
+    
+    @db = Sequel.connect(@dbinfo)
     return @db
   end
   alias :db :database

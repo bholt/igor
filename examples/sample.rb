@@ -4,7 +4,12 @@ require 'igor'
 exe = 'graph.exe'
 
 Igor do
-  database 'sample_igor.db', :test
+  # example of using Sqlite database
+  database 'sample_igor.sqlite', :test
+  
+  # example of using MySQL database
+  # database(adapter:'mysql', host:'n03.sampa', user:'grappa', table: :test)
+  
   command "srun #{File.dirname(__FILE__)}/slow_loop.sh %{a} %{b} %{e}"
   
   sbatch_flags << "--time=30:00"
