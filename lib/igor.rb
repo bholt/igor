@@ -235,11 +235,18 @@ module Igor
     end
   end
   
-  # View output from batch job. Interprets a number as a job alias and looks it up,
-  # interprets a String as the path of the output file itself.  
+  # View output from batch job. Supports several different ways of invoking:
+  # - view 0: interprets integer as job number (from 'status')
+  # - view 'test.out': interprets string as the output file to read
+  # - view { id 3 }: view the most recent *job* matching the given DSL-defined hash (treats the block like a 'params' or 'run' DSL and queries the ':job' table for matching entries)
+  # - view(:test){ id 3 }: query a particular table instead of ':job'
   def view(a = @job_aliases.keys.last, &blk)
     if blk
-      view jobs.reverse_order(:id).where(Params.new(&blk)).first.outfile
+      if a.is_a? Symbol
+        view @db[a].reverse_order(:id).where(Params.new(&blk)).first[:outfile]
+      else
+        view jobs.reverse_order(:id).where(Params.new(&blk)).first.outfile
+      end
     elsif a.is_a? Integer
       j = @jobs[@job_aliases[a]]
       j.cat
