@@ -21,6 +21,7 @@ Gem::Specification.new do |gem|
     gem.add_dependency('ffi')
     gem.add_dependency('file-tail')
     gem.add_dependency('hirb') # optional, but makes pretty tables...
+    gem.add_dependency('rugged', '0.19')
 
     gem.authors = ['Brandon Holt', 'Brandon Myers']
     gem.email   = ['bholt@cs.washington.edu', 'bdmyers@cs.washington.edu']
